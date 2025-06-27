@@ -1,14 +1,15 @@
-
-
-
-python
-import telebot import os
+import os
+from flask import Flask, request, jsonify
+import telebot
 from telebot import types
 import json
 from datetime import datetime
 
-# Токен вашего бота
-TOKEN = "8032340002:AAHlXYZ8X6lU8tLNIOCUJU4p0GYuwU_jWKU"
+# Инициализация Flask приложения
+app = Flask(__name__)
+
+# Токен бота из переменных окружения
+TOKEN = os.environ.get('TOKEN', '8032340002:AAHlXYZ8X6lU8tLNIOCUJU4p0GYuwU_jWKU')
 bot = telebot.TeleBot(TOKEN)
 
 # База данных БВИП (базовая величина для исчисления пенсий)
@@ -48,7 +49,7 @@ def calculate_pension(salaries_data, total_experience):
         return "Ошибка: нужны данные за 60 месяцев"
     
     # Средняя БВИП за последний год (2025)
-    avg_bvip_2025 = 471000
+    avg_bvip_2025 = 449500
     
     # Расчёт ИКЗ и пересчёт заработков
     recalculated_salaries = []
@@ -91,6 +92,19 @@ def calculate_pension(salaries_data, total_experience):
         'pension_percent': min(55 + max(0, total_experience - 25), 80)
     }
 
+@app.route('/')
+def home():
+    return "Пенсионный бот успешно запущен!", 200
+
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return '', 200
+    return 'Invalid content type', 400
+
 @bot.message_handler(commands=['start'])
 def start_message(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -130,7 +144,7 @@ def retirement_procedure(message):
 
 👥 Возраст выхода на пенсию:
 • Мужчины: 60 лет
-• Женщины: 55 лет
+• Женчины: 55 лет
 
 📅 Минимальный стаж:
 • Для полной пенсии: 25 лет
@@ -311,7 +325,8 @@ def demo_calculation(user_id):
     bot.send_message(user_id, result_text)
 
 if __name__ == '__main__':
-    print("🤖 Бот 'Моя пенсия UZ' запущен!")
-    bot.polling(none_stop=True, interval=0,timeout=20)
-
-
+    # Настройка вебхука для Render
+    PORT = int(os.environ.get('PORT', 10000))
+    bot.remove_webhook()
+    bot.set_webhook(url=f"https://pension-bot-uz.onrender.com/{TOKEN}")
+    print(f"🤖 Бот запущен! Вебхук установлен на порт {PORT}")
