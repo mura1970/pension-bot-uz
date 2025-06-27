@@ -2,7 +2,7 @@
 
 
 python
-import telebot
+import telebot import os
 from telebot import types
 import json
 from datetime import datetime
@@ -318,6 +318,6 @@ def demo_calculation(user_id):
 
 if __name__ == '__main__':
     print("🤖 Бот 'Моя пенсия UZ' запущен!")
-    bot.polling(none_stop=True)
+    bot.polling(none_stop=True, interval=0,timeout=20)
 
 
