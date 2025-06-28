@@ -330,3 +330,6 @@ if __name__ == '__main__':
     bot.remove_webhook()
     bot.set_webhook(url=f"https://pension-bot-uz.onrender.com/{TOKEN}")
     print(f"🤖 Бот запущен! Вебхук установлен на порт {PORT}")
+if __name__ == '__main__':
+    PORT = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=PORT)
